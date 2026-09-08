@@ -1,0 +1,16 @@
+node_modules/
+.DS_Store
+*.log
+logs/
+.env
+.env.*
+auth.json
+models-store.json
+*.db
+*.sqlite
+*.sqlite3
+*.key
+*.p12
+*.pfx
+secrets/
+coverage/
