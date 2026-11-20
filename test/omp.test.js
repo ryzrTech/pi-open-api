@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import registerOmpAiGateway from "../dist/omp.js";
+import registerOmpAiGateway from "../src/omp.js";
 
 test("registers the native OMP provider without exposing a key in the package", async () => {
   const previousKey = process.env.OPENAPI_OMP_API_KEY;

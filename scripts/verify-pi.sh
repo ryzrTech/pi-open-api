@@ -8,20 +8,20 @@ for command_name in pi node; do
   fi
 done
 
-models_output="$(pi --list-models openapi)"
+models_output="$(pi --list-models OpenAPI)"
 printf '%s\n' "$models_output"
 
 selector="$(node -e '
   const lines = process.argv[1].split(/\r?\n/);
   const models = lines
     .map((line) => line.trim().split(/\s+/))
-    .filter((columns) => columns[0] === "openapi" && columns[1])
+    .filter((columns) => columns[0] === "OpenAPI" && columns[1])
     .map((columns) => columns[1]);
   const chosen = models.find((id) => id === "ornith-1.5:35b")
     ?? models.find((id) => !id.toLowerCase().includes("embed"))
     ?? models[0];
   if (!chosen) process.exit(1);
-  process.stdout.write(`openapi/${chosen}`);
+  process.stdout.write(`OpenAPI/${chosen}`);
 ' "$models_output")"
 
 if [[ -z "$selector" ]]; then

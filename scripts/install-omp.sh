@@ -39,7 +39,7 @@ done
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_dir="$(cd -- "$script_dir/.." && pwd)"
 
-if [[ ! -f "$repo_dir/package.json" || ! -f "$repo_dir/dist/omp.js" ]]; then
+if [[ ! -f "$repo_dir/package.json" || ! -f "$repo_dir/src/omp.js" ]]; then
   printf 'Plugin checkout is incomplete: %s\n' "$repo_dir" >&2
   exit 1
 fi

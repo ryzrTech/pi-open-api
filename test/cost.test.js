@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { setupGatewayCostTracking } from "../dist/cost.js";
+import { setupGatewayCostTracking } from "../src/cost.js";
 
 function hooks() {
   const callbacks = new Map();

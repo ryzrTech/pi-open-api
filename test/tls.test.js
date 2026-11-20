@@ -6,7 +6,7 @@ import path from "node:path";
 import tls from "node:tls";
 import test from "node:test";
 
-import { configureGatewayTls, resolveGatewayCaPath } from "../dist/tls.js";
+import { configureGatewayTls, resolveGatewayCaPath } from "../src/tls.js";
 
 test("does nothing when no custom CA is configured", () => {
   assert.equal(resolveGatewayCaPath({}), undefined);

@@ -1,6 +1,10 @@
 # PI Open API
 
+![OpenAPI connects an agent to API endpoints](assets/openapi-banner.png)
+
 An open-source PI and OMP extension for the RYZR AI Gateway and other compatible APIs. It discovers the current model inventory from the standard OpenAI-compatible `GET /v1/models` endpoint whenever the agent refreshes its model catalog. Optional `GET /model/info` metadata improves context-window and cost information but is not required.
+
+Pi requests include the Pi session ID in `x-session-id` when available, so compatible gateways can group requests by conversation. Message content is recorded only when the gateway has content capture enabled.
 
 The provider supports Pi's native incremental text/reasoning stream, tool calls, rich model metadata, and per-turn token and cost display. Non-streamed requests use the gateway's exact `x-asg-response-cost` value; streamed requests use the live usage event and current gateway model pricing. Post-response guardrails or transforms may intentionally buffer an answer until it has passed inspection.
 
@@ -27,16 +31,16 @@ No GitHub account or GitHub CLI authentication is required. The command is the s
 Start PI and run:
 
 ```text
-/login openapi
+/login OpenAPI
 ```
 
 Enter the gateway URL without `/v1`, followed by a virtual key. For example:
 
 ```text
-https://ai.ryzrtech.com
+https://api.ryzrtech.com
 ```
 
-Then use `/model` and choose a model under **OPENAPI**. Newly published models appear automatically after PI refreshes its model catalog or restarts.
+Then use `/model` and choose a model under **OpenAPI**. Newly published models appear automatically after PI refreshes its model catalog or restarts.
 
 The extension uses the operating system's normal TLS trust by default. To use a private gateway CA, set `OPENAPI_CA_CERT` to its absolute PEM path before starting PI. The extension keeps TLS verification enabled and does not modify the operating system trust store.
 
@@ -50,7 +54,7 @@ plugin_dir="$HOME/.pi/agent/git/github.com/ryzrtech/PI-OPEN-API"
 Environment variables are also supported for unattended installations:
 
 ```bash
-export OPENAPI_BASE_URL="https://ai.ryzrtech.com"
+export OPENAPI_BASE_URL="https://api.ryzrtech.com"
 export OPENAPI_API_KEY="sk-your-api-key"
 ```
 
@@ -67,10 +71,10 @@ pi update --extensions
 Or update only this extension:
 
 ```bash
-pi update --extension https://github.com/ryzrTech/PI-OPEN-API
+pi update --extension https://github.com/ryzrTech/pi-open-api
 ```
 
-Restart PI after an update.
+Restart Pi after an update. This version uses `OpenAPI` as its Pi provider ID so it appears as `(OpenAPI)` in the status line. Pi stores credentials and default models by provider ID: after updating, run `/login OpenAPI` and select your model again. Existing `openapi` credentials are not deleted. OMP continues to use `openapi`.
 
 ## Post-install checks and known integration points
 
@@ -79,7 +83,7 @@ Run these checks after a fresh install, update, or credential change:
 ```bash
 node --version
 pi --version
-pi --list-models openapi
+pi --list-models OpenAPI
 plugin_dir="$HOME/.pi/agent/git/github.com/ryzrtech/PI-OPEN-API"
 "$plugin_dir/scripts/verify-pi.sh"
 ```
@@ -91,23 +95,23 @@ The verifier must discover at least one model and complete a live inference that
 | Symptom | What to inspect |
 |---|---|
 | `SELF_SIGNED_CERT_IN_CHAIN` or `self-signed certificate in certificate chain` | Configure the gateway CA with `OPENAPI_CA_CERT`, or add it through your normal system trust process. Never use `NODE_TLS_REJECT_UNAUTHORIZED=0`. |
-| `401 invalid API key` | Run `/login openapi` again with an active key. A pasted key may be truncated, expired, revoked, or belong to another gateway. The current sign-in flow validates `/v1/models` before saving. |
-| `No models available` after sign-in | Run `pi --list-models openapi` and the verifier. Check the CA first, then the credential, and confirm this provider extension is actually loaded. PI may summarize an underlying refresh failure as an empty model list. |
+| `401 invalid API key` | Run `/login OpenAPI` in Pi again with an active key. A pasted key may be truncated, expired, revoked, or belong to another gateway. The current sign-in flow validates `/v1/models` before saving. |
+| `No models available` after sign-in | Run `pi --list-models OpenAPI` and the verifier. Check the CA first, then the credential, and confirm this provider extension is actually loaded. PI may summarize an underlying refresh failure as an empty model list. |
 | `No API key found for the selected model` from `pi-hermes-memory` | Hermes consolidation starts an isolated child PI process with `--no-extensions`. Add this provider's absolute extension entry path to Hermes `childExtensionPaths`; see below. |
 | `pi: command not found` over SSH while PI works interactively | The Node/NVM path is probably initialized only by the interactive shell. Run the diagnostic through the login shell (for example, `zsh -lic 'pi --version'`) or configure a stable executable path. This is a host PATH issue, not a provider-auth failure. |
 
 ### pi-hermes-memory auto-consolidation
 
-Automatic over-capacity consolidation runs in a child PI process that intentionally excludes packages from the parent `settings.json`. Stored `openapi` credentials remain available, but the child must also load this provider implementation.
+Automatic over-capacity consolidation runs in a child PI process that intentionally excludes packages from the parent `settings.json`. Pi credentials use the `OpenAPI` provider ID in this version; the child must also load this provider implementation.
 
 Add an absolute provider entry path to `~/.pi/agent/hermes-memory-config.json`:
 
 ```json
 {
-  "llmModelOverride": "openapi/ornith-1.5:35b",
+  "llmModelOverride": "OpenAPI/ornith-1.5:35b",
   "llmThinkingOverride": "off",
   "childExtensionPaths": [
-    "/absolute/path/to/PI-OPEN-API/dist/index.js"
+    "/absolute/path/to/PI-OPEN-API/src/index.js"
   ]
 }
 ```
@@ -115,10 +119,10 @@ Add an absolute provider entry path to `~/.pi/agent/hermes-memory-config.json`:
 For a PI-managed GitHub installation, the entry is normally below:
 
 ```text
-~/.pi/agent/git/github.com/ryzrtech/PI-OPEN-API/dist/index.js
+~/.pi/agent/git/github.com/ryzrtech/PI-OPEN-API/src/index.js
 ```
 
-Use the fully expanded absolute path in JSON; `~` and `$HOME` are not shell-expanded there. For a local checkout, use that checkout's `dist/index.js`. Choose a model currently returned by `pi --list-models openapi`, preserve any other existing Hermes settings, and restart PI after changing the configuration.
+Use the fully expanded absolute path in JSON; `~` and `$HOME` are not shell-expanded there. For a local checkout, use that checkout's `src/index.js`. Choose a model currently returned by `pi --list-models OpenAPI`, preserve any other existing Hermes settings, and restart PI after changing the configuration.
 
 ### Maintenance follow-ups
 
@@ -152,7 +156,7 @@ To store a dedicated credential, start OMP and run:
 /login openapi
 ```
 
-The default gateway is `https://ai.ryzrtech.com`. Override it with `OPENAPI_BASE_URL` when needed. For a gateway that uses a private CA, set `OPENAPI_CA_CERT` to the absolute path of your own CA certificate. No CA certificate is bundled with the plugin.
+The default gateway is `https://api.ryzrtech.com`. Override it with `OPENAPI_BASE_URL` when needed. For a gateway that uses a private CA, set `OPENAPI_CA_CERT` to the absolute path of your own CA certificate. No CA certificate is bundled with the plugin.
 
 OMP 17.2.12 has a startup parsing bug for exact dynamic model selectors containing an Ollama tag colon. Use a unique colon-free selector such as `openapi/e2b` at startup, or choose the exact tagged model from OMP's interactive model picker after discovery. This workaround can be removed after OMP fixes its pre-discovery selector parsing.
 
@@ -170,7 +174,7 @@ plugin_dir="${XDG_DATA_HOME:-$HOME/.local/share}/openapi/PI-OPEN-API"
 pi remove https://github.com/ryzrTech/PI-OPEN-API
 ```
 
-Removing the extension does not automatically delete the locally stored `openapi` credential from `~/.pi/agent/auth.json`.
+Removing the extension does not automatically delete credentials stored under `OpenAPI` or the previous `openapi` provider ID.
 
 ## Development and verification
 

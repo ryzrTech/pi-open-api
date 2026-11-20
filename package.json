@@ -1,6 +1,6 @@
 {
   "name": "pi-open-api",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Dynamic OpenAI-compatible API provider for Pi and OMP",
   "type": "module",
   "license": "MIT",
@@ -12,21 +12,23 @@
   "bugs": {
     "url": "https://github.com/ryzrTech/PI-OPEN-API/issues"
   },
-  "main": "./dist/index.js",
+  "main": "./src/index.js",
   "files": [
+    "src",
     "dist",
+    "assets",
     "scripts",
     "INSTALL-OMP.md",
     "README.md"
   ],
   "pi": {
     "extensions": [
-      "./dist/index.js"
+      "./src/index.js"
     ]
   },
   "omp": {
     "extensions": [
-      "./dist/omp.js"
+      "./src/omp.js"
     ]
   },
   "scripts": {
