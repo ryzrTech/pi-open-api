@@ -6,11 +6,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ryzrTech/PI-OPEN-API.git"
+    "url": "git+https://github.com/ryzrTech/pi-open-api.git"
   },
-  "homepage": "https://github.com/ryzrTech/PI-OPEN-API#readme",
+  "homepage": "https://github.com/ryzrTech/pi-open-api#readme",
   "bugs": {
-    "url": "https://github.com/ryzrTech/PI-OPEN-API/issues"
+    "url": "https://github.com/ryzrTech/pi-open-api/issues"
   },
   "main": "./src/index.js",
   "files": [

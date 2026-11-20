@@ -21,7 +21,7 @@ No API key, CA certificate, certificate key, logs, prompts, or model inventory i
 Install directly from the public GitHub repository:
 
 ```bash
-pi install https://github.com/ryzrTech/PI-OPEN-API
+pi install https://github.com/ryzrTech/pi-open-api
 ```
 
 No GitHub account or GitHub CLI authentication is required. The command is the same on macOS and Linux.
@@ -47,7 +47,7 @@ The extension uses the operating system's normal TLS trust by default. To use a 
 Sign-in validates the gateway URL and virtual key against the live model inventory before saving the credential. After signing in, run the live verification:
 
 ```bash
-plugin_dir="$HOME/.pi/agent/git/github.com/ryzrtech/PI-OPEN-API"
+plugin_dir="$HOME/.pi/agent/git/github.com/ryzrtech/pi-open-api"
 "$plugin_dir/scripts/verify-pi.sh"
 ```
 
@@ -84,7 +84,7 @@ Run these checks after a fresh install, update, or credential change:
 node --version
 pi --version
 pi --list-models OpenAPI
-plugin_dir="$HOME/.pi/agent/git/github.com/ryzrtech/PI-OPEN-API"
+plugin_dir="$HOME/.pi/agent/git/github.com/ryzrtech/pi-open-api"
 "$plugin_dir/scripts/verify-pi.sh"
 ```
 
@@ -111,7 +111,7 @@ Add an absolute provider entry path to `~/.pi/agent/hermes-memory-config.json`:
   "llmModelOverride": "OpenAPI/ornith-1.5:35b",
   "llmThinkingOverride": "off",
   "childExtensionPaths": [
-    "/absolute/path/to/PI-OPEN-API/src/index.js"
+    "/absolute/path/to/pi-open-api/src/index.js"
   ]
 }
 ```
@@ -119,7 +119,7 @@ Add an absolute provider entry path to `~/.pi/agent/hermes-memory-config.json`:
 For a PI-managed GitHub installation, the entry is normally below:
 
 ```text
-~/.pi/agent/git/github.com/ryzrtech/PI-OPEN-API/src/index.js
+~/.pi/agent/git/github.com/ryzrtech/pi-open-api/src/index.js
 ```
 
 Use the fully expanded absolute path in JSON; `~` and `$HOME` are not shell-expanded there. For a local checkout, use that checkout's `src/index.js`. Choose a model currently returned by `pi --list-models OpenAPI`, preserve any other existing Hermes settings, and restart PI after changing the configuration.
@@ -137,14 +137,14 @@ For the complete Ubuntu/Zorin handoff, including a copy-paste block for another 
 OMP uses the native `omp.extensions` entry in this same package. Link a local checkout during development:
 
 ```bash
-omp plugin link /absolute/path/to/PI-OPEN-API
+omp plugin link /absolute/path/to/pi-open-api
 ```
 
 For a durable install, clone the public repository and run the bundled installer:
 
 ```bash
-install_dir="${XDG_DATA_HOME:-$HOME/.local/share}/openapi/PI-OPEN-API"
-git clone https://github.com/ryzrTech/PI-OPEN-API.git "$install_dir"
+install_dir="${XDG_DATA_HOME:-$HOME/.local/share}/openapi/pi-open-api"
+git clone https://github.com/ryzrTech/pi-open-api.git "$install_dir"
 "$install_dir/scripts/install-omp.sh"
 ```
 
@@ -163,7 +163,7 @@ OMP 17.2.12 has a startup parsing bug for exact dynamic model selectors containi
 After signing in, finish the configuration and run the live verification:
 
 ```bash
-plugin_dir="${XDG_DATA_HOME:-$HOME/.local/share}/openapi/PI-OPEN-API"
+plugin_dir="${XDG_DATA_HOME:-$HOME/.local/share}/openapi/pi-open-api"
 "$plugin_dir/scripts/install-omp.sh" --set-default
 "$plugin_dir/scripts/verify-omp.sh"
 ```
@@ -171,7 +171,7 @@ plugin_dir="${XDG_DATA_HOME:-$HOME/.local/share}/openapi/PI-OPEN-API"
 ## Remove
 
 ```bash
-pi remove https://github.com/ryzrTech/PI-OPEN-API
+pi remove https://github.com/ryzrTech/pi-open-api
 ```
 
 Removing the extension does not automatically delete credentials stored under `OpenAPI` or the previous `openapi` provider ID.

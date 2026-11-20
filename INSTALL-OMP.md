@@ -16,12 +16,12 @@ Give the following block to the agent on the Linux machine:
 
 ```bash
 set -euo pipefail
-install_dir="${XDG_DATA_HOME:-$HOME/.local/share}/openapi/PI-OPEN-API"
+install_dir="${XDG_DATA_HOME:-$HOME/.local/share}/openapi/pi-open-api"
 if [[ -d "$install_dir/.git" ]]; then
   git -C "$install_dir" pull --ff-only
 else
   mkdir -p "$(dirname "$install_dir")"
-  git clone https://github.com/ryzrTech/PI-OPEN-API.git "$install_dir"
+  git clone https://github.com/ryzrTech/pi-open-api.git "$install_dir"
 fi
 "$install_dir/scripts/install-omp.sh"
 ```
@@ -49,7 +49,7 @@ Paste the API key when prompted. OMP stores it in its own local credential store
 After login, run:
 
 ```bash
-install_dir="${XDG_DATA_HOME:-$HOME/.local/share}/openapi/PI-OPEN-API"
+install_dir="${XDG_DATA_HOME:-$HOME/.local/share}/openapi/pi-open-api"
 "$install_dir/scripts/install-omp.sh" --set-default
 "$install_dir/scripts/verify-omp.sh"
 ```
@@ -61,7 +61,7 @@ install_dir="${XDG_DATA_HOME:-$HOME/.local/share}/openapi/PI-OPEN-API"
 Pull the latest version and rerun the installer:
 
 ```bash
-install_dir="${XDG_DATA_HOME:-$HOME/.local/share}/openapi/PI-OPEN-API"
+install_dir="${XDG_DATA_HOME:-$HOME/.local/share}/openapi/pi-open-api"
 git -C "$install_dir" pull --ff-only
 "$install_dir/scripts/install-omp.sh"
 "$install_dir/scripts/verify-omp.sh"
