@@ -12,6 +12,8 @@ Install these commands first:
 
 ## Agent-ready installation
 
+Set `OPENAPI_BASE_URL` in your environment to the OpenAI-compatible provider URL before running these commands or starting OMP.
+
 Give the following block to the agent on the Linux machine:
 
 ```bash
@@ -71,7 +73,7 @@ Models do not need to be added to this plugin manually. OMP receives the current
 
 ## Optional overrides
 
-The normal defaults are already correct for the RyzrTech gateway. These variables are available for a different installation:
+Set `OPENAPI_BASE_URL` to your provider URL before starting OMP. Set the optional CA path only when your provider requires a private CA:
 
 ```bash
 export OPENAPI_BASE_URL="https://gateway.example.com"

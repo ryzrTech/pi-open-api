@@ -37,6 +37,7 @@ export function setupGatewayModelSelection(pi, resolveAuth, options = {}) {
   let restoring = false;
   let selectionRevision = 0;
   let selectedModel;
+  const manageSelection = options.manageSelection === true;
   async function select(model, ctx, previousModel) {
     if (restoring || model?.provider !== providerId) return;
     const operation = queue.catch(() => {}).then(async () => {
@@ -64,9 +65,9 @@ export function setupGatewayModelSelection(pi, resolveAuth, options = {}) {
   }
   pi.on("model_select", (event, ctx) => {
     selectionRevision++;
-    return select(event.model, ctx, event.previousModel);
+    if (manageSelection) return select(event.model, ctx, event.previousModel);
   });
-  if (options.reconcileBeforeAgentStart) {
+  if (manageSelection && options.reconcileBeforeAgentStart) {
     // OMP 18 does not emit Pi's model_select extension event. Reconcile the
     // client's explicit model choice before its first request after a change.
     pi.on("before_agent_start", async (_event, ctx) => {
@@ -97,7 +98,7 @@ export function setupGatewayModelSelection(pi, resolveAuth, options = {}) {
       if (error) throw error;
     }
     // A native model selection during refresh supersedes the startup snapshot.
-    if (!selected || startingRevision !== selectionRevision) return;
+    if (!manageSelection || !selected || startingRevision !== selectionRevision) return;
     await select(ctx.model, ctx);
   });
 }

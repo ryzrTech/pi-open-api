@@ -7,7 +7,7 @@ test("registers the native OMP provider without exposing a key in the package", 
   const previousKey = process.env.OPENAPI_OMP_API_KEY;
   const previousBaseUrl = process.env.OPENAPI_BASE_URL;
   const previousCa = process.env.NODE_EXTRA_CA_CERTS;
-  process.env.OPENAPI_OMP_API_KEY = "sk-test";
+  process.env.OPENAPI_OMP_API_KEY = "example-token";
   process.env.OPENAPI_BASE_URL = "https://gateway.example.com/v1/";
 
   let registered;
@@ -32,11 +32,21 @@ test("registers the native OMP provider without exposing a key in the package", 
 
   assert.equal(registered.name, "openapi");
   assert.equal(registered.config.baseUrl, "https://gateway.example.com/v1");
-  assert.equal(registered.config.apiKey, "sk-test");
+  assert.equal(registered.config.apiKey, "example-token");
   assert.equal(registered.config.api, "openai-completions");
   assert.equal(registered.config.authHeader, true);
   assert.equal(typeof registered.config.fetchDynamicModels, "function");
-  assert.equal(await registered.config.oauth.login({ onPrompt: async () => "Bearer sk-login" }), "sk-login");
+  assert.equal(await registered.config.oauth.login({ onPrompt: async () => "Bearer example-login-token" }), "example-login-token");
   assert.equal(callbacks.has("after_provider_response"), true);
   assert.equal(callbacks.has("message_end"), true);
+});
+
+test("OMP requires an explicit API URL rather than using a private default", () => {
+  const before = process.env.OPENAPI_BASE_URL;
+  delete process.env.OPENAPI_BASE_URL;
+  try {
+    assert.throws(() => registerOmpAiGateway({registerProvider() {}, on() {}}), /Set OPENAPI_BASE_URL/);
+  } finally {
+    if (before !== undefined) process.env.OPENAPI_BASE_URL = before;
+  }
 });

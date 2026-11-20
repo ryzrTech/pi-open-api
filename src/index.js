@@ -86,8 +86,8 @@ export default function registerAiGateway(pi) {
     models: [],
     async fetchModels(context) {
       const credential = context.credential;
-      const baseUrl = normalizeBaseUrl(credential?.env?.[BASE_URL_ENV]);
-      const apiKey = clean(credential?.key);
+      const baseUrl = normalizeBaseUrl(credential?.env?.[BASE_URL_ENV] ?? process.env[BASE_URL_ENV] ?? context.baseUrl);
+      const apiKey = clean(credential?.key ?? process.env[API_KEY_ENV]);
       if (!baseUrl || !apiKey) {
         throw new Error(`Run /login ${PROVIDER_ID} before refreshing models`);
       }
@@ -106,5 +106,5 @@ export default function registerAiGateway(pi) {
   setupGatewayModelSelection(pi, async (ctx) => {
     const resolved = await ctx.modelRegistry.getProviderAuth(PROVIDER_ID);
     return resolved?.auth;
-  }, { refreshCatalog: true, providerId: PROVIDER_ID });
+  }, { refreshCatalog: true, providerId: PROVIDER_ID, manageSelection: process.env.OPENAPI_MANAGED_MODEL_SELECTION === "true" });
 }

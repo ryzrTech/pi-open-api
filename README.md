@@ -2,11 +2,11 @@
 
 ![OpenAPI connects an agent to API endpoints](assets/openapi-banner.png)
 
-An open-source PI and OMP extension for the RYZR AI Gateway and other compatible APIs. It discovers the current model inventory from the standard OpenAI-compatible `GET /v1/models` endpoint whenever the agent refreshes its model catalog. Optional `GET /model/info` metadata improves context-window and cost information but is not required.
+An open-source Pi and OMP extension for OpenAI-compatible APIs. It discovers the current model inventory from the standard OpenAI-compatible `GET /v1/models` endpoint whenever the agent refreshes its model catalog. Optional `GET /model/info` metadata improves context-window and cost information but is not required.
 
 Pi requests include the Pi session ID in `x-session-id` when available, so compatible gateways can group requests by conversation. Message content is recorded only when the gateway has content capture enabled.
 
-The provider supports Pi's native incremental text/reasoning stream, tool calls, rich model metadata, and per-turn token and cost display. Non-streamed requests use the gateway's exact `x-asg-response-cost` value; streamed requests use the live usage event and current gateway model pricing. Post-response guardrails or transforms may intentionally buffer an answer until it has passed inspection.
+The provider supports Pi's native incremental text/reasoning stream, tool calls, rich model metadata, and per-turn token and cost display. When a provider supplies supported cost headers, the extension can use them; otherwise it uses the available model usage and pricing data.
 
 No API key, CA certificate, certificate key, logs, prompts, or model inventory is stored in this repository. Each device stores its own credential in the agent's local credential store.
 
@@ -37,10 +37,12 @@ Start PI and run:
 Enter the gateway URL without `/v1`, followed by a virtual key. For example:
 
 ```text
-https://api.ryzrtech.com
+https://api.example.com
 ```
 
 Then use `/model` and choose a model under **OpenAPI**. Newly published models appear automatically after PI refreshes its model catalog or restarts.
+
+Providers with a nonstandard managed model-selection API can opt in with `OPENAPI_MANAGED_MODEL_SELECTION=true`. Leave it unset for standard OpenAI-compatible APIs; model selection then makes no additional management request.
 
 The extension uses the operating system's normal TLS trust by default. To use a private gateway CA, set `OPENAPI_CA_CERT` to its absolute PEM path before starting PI. The extension keeps TLS verification enabled and does not modify the operating system trust store.
 
@@ -54,11 +56,10 @@ plugin_dir="$HOME/.pi/agent/git/github.com/ryzrtech/pi-open-api"
 Environment variables are also supported for unattended installations:
 
 ```bash
-export OPENAPI_BASE_URL="https://api.ryzrtech.com"
-export OPENAPI_API_KEY="sk-your-api-key"
+export OPENAPI_BASE_URL="https://api.example.com"
 ```
 
-Never commit either value to this repository or a shell profile synchronized to an untrusted system.
+Set `OPENAPI_API_KEY` securely in your environment if using unattended authentication; avoid putting credentials in shell history or source control.
 
 ## Update
 
@@ -108,7 +109,7 @@ Add an absolute provider entry path to `~/.pi/agent/hermes-memory-config.json`:
 
 ```json
 {
-  "llmModelOverride": "OpenAPI/ornith-1.5:35b",
+  "llmModelOverride": "OpenAPI/example-model",
   "llmThinkingOverride": "off",
   "childExtensionPaths": [
     "/absolute/path/to/pi-open-api/src/index.js"
@@ -156,7 +157,7 @@ To store a dedicated credential, start OMP and run:
 /login openapi
 ```
 
-The default gateway is `https://api.ryzrtech.com`. Override it with `OPENAPI_BASE_URL` when needed. For a gateway that uses a private CA, set `OPENAPI_CA_CERT` to the absolute path of your own CA certificate. No CA certificate is bundled with the plugin.
+OMP requires `OPENAPI_BASE_URL` to be set to your provider URL before startup. For a gateway that uses a private CA, set `OPENAPI_CA_CERT` to the absolute path of your own CA certificate. No CA certificate is bundled with the plugin.
 
 OMP 17.2.12 has a startup parsing bug for exact dynamic model selectors containing an Ollama tag colon. Use a unique colon-free selector such as `openapi/e2b` at startup, or choose the exact tagged model from OMP's interactive model picker after discovery. This workaround can be removed after OMP fixes its pre-discovery selector parsing.
 

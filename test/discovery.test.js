@@ -8,11 +8,11 @@ test("normalizes gateway URLs", () => {
 
 test("deduplicates /v1/models and enriches model metadata", () => {
   const models = mapModels(
-    { data: [{ id: "ornith:35b" }, { id: "ornith:35b" }] },
+    { data: [{ id: "example-model" }, { id: "example-model" }] },
     {
       data: [
         {
-          model_name: "ornith:35b",
+          model_name: "example-model",
           model_info: {
             context_window: 262144,
             max_output_tokens: 8192,
@@ -27,7 +27,7 @@ test("deduplicates /v1/models and enriches model metadata", () => {
   );
 
   assert.equal(models.length, 1);
-  assert.equal(models[0].id, "ornith:35b");
+  assert.equal(models[0].id, "example-model");
   assert.equal(models[0].compat.sendSessionAffinityHeaders, true);
   assert.equal(models[0].compat.sessionAffinityFormat, "openrouter");
   assert.equal(models[0].contextWindow, 262144);
@@ -38,8 +38,8 @@ test("deduplicates /v1/models and enriches model metadata", () => {
 
 test("uses the published output allowance instead of the 16K fallback", () => {
   const [model] = mapModels(
-    { data: [{ id: "ornith-1.5:35b", context_window: 262144 }] },
-    { data: [{ model_name: "ornith-1.5:35b", model_info: {
+    { data: [{ id: "example-model", context_window: 262144 }] },
+    { data: [{ model_name: "example-model", model_info: {
       max_input_tokens: 262144,
       max_output_tokens: 65536,
     } }] },
@@ -59,7 +59,7 @@ test("uses /v1/models as the authority when optional metadata is unavailable", a
   };
 
   const warnings = [];
-  const models = await discoverModels("https://ai.example.com", "sk-test", {
+  const models = await discoverModels("https://ai.example.com", "example-token", {
     providerId: "openapi",
     fetchImpl,
     onWarning: (message) => warnings.push(message),

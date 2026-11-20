@@ -6,7 +6,7 @@ test("model selection waits for successful server transition with authenticated 
   const requests=[];
   const states=[{status:"queued",job_id:"job"},{status:"running",job_id:"job"},{status:"completed",job_id:"job"}];
   const result=await selectGatewayModel("https://gateway.example/v1","test-key","Bonsai 2 27B",{
-    pause:async()=>{},fetchImpl:async (url,init)=>{requests.push({url,init});return new Response(JSON.stringify(states.shift()));},
+    pause:async()=>{},manageSelection:true,fetchImpl:async (url,init)=>{requests.push({url,init});return new Response(JSON.stringify(states.shift()));},
   });
   assert.equal(result.status,"completed");
   assert.equal(requests[0].url,"https://gateway.example/v1/models/select");
@@ -17,7 +17,7 @@ test("model selection waits for successful server transition with authenticated 
 
 test("failed server selection reports its reason", async () => {
   await assert.rejects(selectGatewayModel("https://gateway.example","key","Test",{
-    fetchImpl:async()=>new Response(JSON.stringify({status:"failed",error:"admission rejected"})),
+    manageSelection:true,fetchImpl:async()=>new Response(JSON.stringify({status:"failed",error:"admission rejected"})),
   }),/admission rejected/);
 });
 
@@ -27,7 +27,7 @@ test("native model_select hook switches on selection and restores prior client m
   const ctx={ui:{setStatus:()=>{},notify:(message)=>notifications.push(message)}};
   let fail=false;
   setupGatewayModelSelection(pi,async()=>({baseUrl:"https://gateway.example",apiKey:"key"}),{
-    fetchImpl:async(_url,init)=>{
+    manageSelection:true,fetchImpl:async(_url,init)=>{
       selected.push(JSON.parse(init.body).model);
       return new Response(JSON.stringify(fail?{status:"failed",error:"bad profile"}:{status:"ready"}));
     },
@@ -45,7 +45,7 @@ test("OMP startup refreshes only its provider before selecting the model", async
   const hooks=new Map(), calls=[];
   const pi={on:(event,hook)=>hooks.set(event,hook)};
   setupGatewayModelSelection(pi,async()=>({baseUrl:"https://gateway.example",apiKey:"key"}),{
-    refreshCatalog:true,fetchImpl:async()=>{calls.push("select");return Response.json({status:"ready"});},
+    refreshCatalog:true,manageSelection:true,fetchImpl:async()=>{calls.push("select");return Response.json({status:"ready"});},
   });
   await hooks.get("session_start")({}, {model:{provider:"openapi",id:"Bonsai"},
     modelRegistry:{refreshProvider:async(id)=>calls.push(`refresh:${id}`)}});
@@ -59,7 +59,7 @@ test("a new native selection supersedes the startup model during discovery refre
   const pi = {on: (event, hook) => hooks.set(event, hook)};
   setupGatewayModelSelection(pi, async () => ({baseUrl: "https://gateway.example", apiKey: "key"}), {
     refreshCatalog: true,
-    fetchImpl: async (_url, init) => {
+    manageSelection:true,fetchImpl: async (_url, init) => {
       selected.push(JSON.parse(init.body).model);
       return Response.json({status: "ready"});
     },
@@ -68,27 +68,27 @@ test("a new native selection supersedes the startup model during discovery refre
     model: {provider: "openapi", id: "Bonsai"},
     modelRegistry: {refreshProvider: async () => refresh},
   });
-  await hooks.get("model_select")({model: {provider: "openapi", id: "Ornith"}}, {});
+  await hooks.get("model_select")({model: {provider: "openapi", id: "OtherModel"}}, {});
   completeRefresh();
   await startup;
-  assert.deepEqual(selected, ["Ornith"]);
+  assert.deepEqual(selected, ["OtherModel"]);
 });
 
 test("OMP reconciles a changed explicit choice before generation without reselecting unchanged models", async () => {
   const hooks = new Map(), selected = [];
   setupGatewayModelSelection({on: (event, hook) => hooks.set(event, hook)},
     async () => ({baseUrl: "https://gateway.example", apiKey: "key"}), {
-      reconcileBeforeAgentStart: true,
+      reconcileBeforeAgentStart: true, manageSelection:true,
       fetchImpl: async (_url, init) => {
         selected.push(JSON.parse(init.body).model);
         return Response.json({status: "ready"});
       },
     });
   await hooks.get("session_start")({}, {model: {provider: "openapi", id: "Bonsai"}});
-  await hooks.get("before_agent_start")({}, {model: {provider: "openapi", id: "Ornith"}});
-  await hooks.get("before_agent_start")({}, {model: {provider: "openapi", id: "Ornith"}});
+  await hooks.get("before_agent_start")({}, {model: {provider: "openapi", id: "OtherModel"}});
+  await hooks.get("before_agent_start")({}, {model: {provider: "openapi", id: "OtherModel"}});
   await hooks.get("before_agent_start")({}, {model: {provider: "other", id: "skip"}});
-  assert.deepEqual(selected, ["Bonsai", "Ornith"]);
+  assert.deepEqual(selected, ["Bonsai", "OtherModel"]);
 });
 
 test("OMP generation during startup refresh supersedes the stale startup choice", async () => {
@@ -97,7 +97,7 @@ test("OMP generation during startup refresh supersedes the stale startup choice"
   const refresh = new Promise(resolve => { finish = resolve; });
   setupGatewayModelSelection({on: (event, hook) => hooks.set(event, hook)},
     async () => ({baseUrl: "https://gateway.example", apiKey: "key"}), {
-      refreshCatalog: true, reconcileBeforeAgentStart: true,
+      refreshCatalog: true, reconcileBeforeAgentStart: true, manageSelection:true,
       fetchImpl: async (_url, init) => {
         selected.push(JSON.parse(init.body).model);
         return Response.json({status: "ready"});
@@ -107,10 +107,10 @@ test("OMP generation during startup refresh supersedes the stale startup choice"
     model: {provider: "openapi", id: "Bonsai"},
     modelRegistry: {refreshProvider: async () => refresh},
   });
-  await hooks.get("before_agent_start")({}, {model: {provider: "openapi", id: "Ornith"}});
+  await hooks.get("before_agent_start")({}, {model: {provider: "openapi", id: "OtherModel"}});
   finish();
   await startup;
-  assert.deepEqual(selected, ["Ornith"]);
+  assert.deepEqual(selected, ["OtherModel"]);
 });
 
 test("Pi selection recognizes the OpenAPI provider ID", async () => {
@@ -119,7 +119,7 @@ test("Pi selection recognizes the OpenAPI provider ID", async () => {
   const calls = [];
   setupGatewayModelSelection(pi, async () => ({ baseUrl: "https://gateway.example", apiKey: "test" }), {
     providerId: "OpenAPI",
-    fetchImpl: async () => { calls.push("select"); return Response.json({status: "completed"}); },
+    manageSelection:true,fetchImpl: async () => { calls.push("select"); return Response.json({status: "completed"}); },
   });
   await hooks.get("model_select")({ model: {provider: "OpenAPI", id: "model"} }, {});
   assert.deepEqual(calls, ["select"]);
@@ -131,4 +131,18 @@ test("discovers configured provider on startup without selecting a different mod
   setupGatewayModelSelection(pi, async () => ({ baseUrl: "https://gateway.example", apiKey: "test" }), {providerId:"OpenAPI", refreshCatalog:true});
   await hooks.get("session_start")({}, { model: {provider:"another", id:"model"}, modelRegistry: { refresh: async ({providers}) => { calls.push(providers); return {errors: new Map()}; } } });
   assert.deepEqual(calls, [["OpenAPI"]]);
+});
+
+test("standard OpenAI-compatible APIs never receive managed model selection calls", async () => {
+  const hooks = new Map(), calls = [];
+  setupGatewayModelSelection({on: (event, hook) => hooks.set(event, hook)},
+    async () => ({baseUrl: "https://api.example.com", apiKey: "example-token"}), {
+      providerId: "OpenAPI", refreshCatalog: true, reconcileBeforeAgentStart: true,
+      fetchImpl: async url => { calls.push(url); throw new Error("unexpected management request"); },
+    });
+  const context = {model: {provider:"OpenAPI", id:"example-model"}, modelRegistry: {refresh: async () => ({errors: new Map()})}};
+  await hooks.get("session_start")({}, context);
+  await hooks.get("model_select")({model:context.model}, context);
+  assert.equal(hooks.has("before_agent_start"), false);
+  assert.deepEqual(calls, []);
 });

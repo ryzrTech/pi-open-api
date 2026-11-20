@@ -86,8 +86,7 @@ fi
 if ((set_default == 1)); then
   selector="$(node -e '
     const models = JSON.parse(process.argv[1]).models ?? [];
-    const preferred = models.find((model) => String(model.id).toLowerCase().endsWith(":e2b"));
-    const chosen = preferred ?? models[0];
+    const chosen = models.find((model) => !String(model.id).toLowerCase().includes("embed")) ?? models[0];
     if (!chosen) process.exit(1);
     const id = String(chosen.id);
     const suffix = id.includes(":") ? id.slice(id.lastIndexOf(":") + 1) : id;

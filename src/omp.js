@@ -8,7 +8,6 @@ import { setupGatewayModelSelection } from "./selection.js";
 
 const PROVIDER_ID = "openapi";
 const PROVIDER_NAME = "OPENAPI";
-const DEFAULT_BASE_URL = "https://api.ryzrtech.com";
 
 function clean(value) {
   const normalized = typeof value === "string" ? value.trim() : "";
@@ -80,7 +79,7 @@ function toOmpModel(model) {
 async function login(callbacks) {
   const value = await callbacks.onPrompt({
     message: "Enter OPENAPI key",
-    placeholder: "sk-...",
+    placeholder: "API key",
   });
   const key = clean(value)?.replace(/^Bearer\s+/i, "");
   if (!key) throw new Error("OPENAPI key is required");
@@ -89,7 +88,8 @@ async function login(callbacks) {
 
 export default function registerOmpAiGateway(pi) {
   configureExtraCa();
-  const baseUrl = normalizeBaseUrl(process.env.OPENAPI_BASE_URL ?? DEFAULT_BASE_URL);
+  const baseUrl = normalizeBaseUrl(process.env.OPENAPI_BASE_URL);
+  if (!baseUrl) throw new Error("Set OPENAPI_BASE_URL to your OpenAI-compatible API URL before starting OMP");
   let apiKey = bootstrapKey();
 
   pi.registerProvider(PROVIDER_ID, {
@@ -114,5 +114,5 @@ export default function registerOmpAiGateway(pi) {
   });
 
   setupGatewayCostTracking(pi, PROVIDER_ID);
-  setupGatewayModelSelection(pi, async () => ({ baseUrl, apiKey }), { fetchImpl: gatewayFetch, refreshCatalog: true });
+  setupGatewayModelSelection(pi, async () => ({ baseUrl, apiKey }), { fetchImpl: gatewayFetch, refreshCatalog: true, reconcileBeforeAgentStart: true, manageSelection: process.env.OPENAPI_MANAGED_MODEL_SELECTION === "true" });
 }

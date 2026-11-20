@@ -17,8 +17,7 @@ selector="$(node -e '
     .map((line) => line.trim().split(/\s+/))
     .filter((columns) => columns[0] === "OpenAPI" && columns[1])
     .map((columns) => columns[1]);
-  const chosen = models.find((id) => id === "ornith-1.5:35b")
-    ?? models.find((id) => !id.toLowerCase().includes("embed"))
+  const chosen = models.find((id) => !id.toLowerCase().includes("embed"))
     ?? models[0];
   if (!chosen) process.exit(1);
   process.stdout.write(`OpenAPI/${chosen}`);
